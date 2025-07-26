@@ -1,0 +1,17 @@
+# Dependencies
+/backend/.venv/
+/frontend/node_modules/
+
+# IDE / Editor specific
+.vscode/
+.idea/
+
+# Build output
+/frontend/dist/
+
+# Log files
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
