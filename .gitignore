@@ -1,0 +1,36 @@
+# General
+.DS_Store
+.idea/
+.vscode/
+*.log
+
+# Python / Backend
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+backend/instance/
+backend/.pytest_cache/
+*.db
+*.sqlite3
+
+# Node.js / Frontend
+node_modules/
+dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+frontend/dist/
+frontend/node_modules/
+.env
+.env.local
+.env.*.local
+
+# PWA
+frontend/public/sw.js
+frontend/public/workbox-*.js
+
+# Other
+MoviePilot-Plugins/
