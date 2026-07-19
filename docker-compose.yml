@@ -1,0 +1,16 @@
+services:
+  backend:
+    image: akaishuichiw/media-bridge-backend:latest
+    container_name: media-bridge-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+      - ./db:/app/db
+      - ./logs:/app/logs
+    environment:
+      - CONFIG_PATH=/app/config.yaml
+
+networks:
+  media-bridge-network:
