@@ -1,0 +1,13 @@
+services:
+  mediabridge:
+    image: ${IMAGE_NAME:-akaishuichiw/mediabridge:latest}
+    container_name: mediabridge
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      CONFIG_PATH: /app/config.yaml
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+      - ./db:/app/db
+      - ./logs:/app/logs

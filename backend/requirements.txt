@@ -2,7 +2,7 @@ fastapi==0.115.12
 uvicorn[standard]==0.34.2
 sqlalchemy[asyncio]==2.0.50
 aiosqlite==0.22.1
-p115client==0.0.8.6.4
+p115client==0.0.9.4.9.1
 loguru==0.7.3
 pyyaml==6.0.3
 pydantic==2.13.4
