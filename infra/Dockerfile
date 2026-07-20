@@ -1,11 +1,11 @@
 FROM node:20-alpine AS frontend-builder
 
-WORKDIR /build/frontend
+WORKDIR /build/apps/web
 
-COPY frontend/package*.json ./
+COPY apps/web/package*.json ./
 RUN npm ci
 
-COPY frontend/ ./
+COPY apps/web/ ./
 RUN npm run build
 
 FROM python:3.12-slim
@@ -21,13 +21,13 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && rm -f /etc/nginx/sites-enabled/default
 
-COPY backend/requirements.txt ./
+COPY apps/server/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY backend/ ./
-COPY deploy/nginx.conf /etc/nginx/conf.d/mediabridge.conf
-COPY deploy/supervisord.conf /etc/supervisor/conf.d/mediabridge.conf
-COPY --from=frontend-builder /build/frontend/dist /usr/share/nginx/html
+COPY apps/server/ ./
+COPY infra/nginx/nginx.conf /etc/nginx/conf.d/mediabridge.conf
+COPY infra/supervisor/supervisord.conf /etc/supervisor/conf.d/mediabridge.conf
+COPY --from=frontend-builder /build/apps/web/dist /usr/share/nginx/html
 
 EXPOSE 80
 
