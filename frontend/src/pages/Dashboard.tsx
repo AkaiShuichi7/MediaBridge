@@ -109,8 +109,8 @@ export default function Dashboard() {
         />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
+      <div className="grid gap-6 lg:grid-cols-2 [&>*]:min-w-0">
+        <Card className="overflow-hidden">
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-medium">最近任务</CardTitle>
           </CardHeader>
@@ -130,9 +130,9 @@ export default function Dashboard() {
               <div className="space-y-3">
                 {/* @ts-ignore */}
                 {recentTasks.map(task => (
-                  <div key={task.id} className="rounded-lg border p-3">
-                    <p className="truncate text-sm font-medium">{task.name}</p>
-                    <p className="text-xs text-muted-foreground truncate mt-1">{task.magnet}</p>
+                  <div key={task.id} className="min-w-0 overflow-hidden rounded-lg border p-3">
+                    <p className="max-w-full truncate text-sm font-medium">{task.name}</p>
+                    <p className="mt-1 max-w-full truncate text-xs text-muted-foreground">{task.magnet}</p>
                   </div>
                 ))}
               </div>
@@ -140,7 +140,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="overflow-hidden">
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-medium">最近整理记录</CardTitle>
           </CardHeader>
@@ -160,9 +160,9 @@ export default function Dashboard() {
               <div className="space-y-3">
                 {/* @ts-ignore */}
                 {recentRecords.map(record => (
-                  <div key={record.id} className="rounded-lg border p-3">
-                    <p className="truncate text-sm font-medium">{record.organized_name}</p>
-                    <p className="mt-1 truncate text-xs text-muted-foreground">{record.target_path}</p>
+                  <div key={record.id} className="min-w-0 overflow-hidden rounded-lg border p-3">
+                    <p className="max-w-full truncate text-sm font-medium" title={record.organized_name}>{record.organized_name}</p>
+                    <p className="mt-1 max-w-full truncate text-xs text-muted-foreground" title={record.target_path}>{record.target_path}</p>
                     <p className="mt-1 text-xs text-muted-foreground">{formatDate(record.created_at)}</p>
                   </div>
                 ))}

@@ -17,12 +17,12 @@ const PageSkeleton = () => (
 
 export function AppShell() {
   return (
-    <div className="flex h-screen w-full bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary">
+    <div className="flex h-screen w-full overflow-x-hidden bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary">
       <Sidebar />
-      <div className="flex flex-1 flex-col overflow-hidden relative">
+      <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
         <PageHeader />
-        <main className="flex-1 overflow-y-auto scroll-smooth">
-          <div className="min-h-full w-full">
+        <main className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto scroll-smooth">
+          <div className="min-h-full min-w-0 w-full">
             <Suspense fallback={<PageSkeleton />}>
               <Outlet />
             </Suspense>
