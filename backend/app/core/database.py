@@ -16,15 +16,21 @@ async_session_local = None
 Base = declarative_base()
 
 
+def resolve_database_url(configured_url: str | None = None) -> str:
+    """Resolve the database URL with environment variables taking precedence."""
+    return os.environ.get("DATABASE_URL") or configured_url or DEFAULT_DATABASE_URL
+
+
 def init_engine(database_url: str | None = None):
     """初始化数据库引擎和会话工厂，仅在配置确定后调用一次。"""
     global engine, async_session_local
 
-    url = database_url or DEFAULT_DATABASE_URL
+    url = resolve_database_url(database_url)
+    connect_args = {"check_same_thread": False} if url.startswith("sqlite") else {}
     engine = create_async_engine(
         url,
         echo=False,
-        connect_args={"check_same_thread": False},
+        connect_args=connect_args,
     )
     async_session_local = sessionmaker(
         engine,
@@ -34,8 +40,8 @@ def init_engine(database_url: str | None = None):
 
 
 def get_database_url() -> str:
-    """获取数据库 URL，优先级：环境变量 > 传入参数 > 默认值。"""
-    return os.environ.get("DATABASE_URL", DEFAULT_DATABASE_URL)
+    """Return the effective database URL."""
+    return resolve_database_url()
 
 
 async def init_db(database_url: str | None = None):
@@ -44,7 +50,7 @@ async def init_db(database_url: str | None = None):
     from app.models.organize_record import OrganizeRecord
     from app.models.path_id_cache import PathIdCache
 
-    url = os.environ.get("DATABASE_URL") or database_url or get_database_url()
+    url = resolve_database_url(database_url)
     init_engine(url)
 
     # SQLite 相对路径 → 确保目录存在

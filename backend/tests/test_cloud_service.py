@@ -35,10 +35,6 @@ class TestCloudServiceABC:
         """CloudService 定义了 rename_file 抽象方法"""
         assert hasattr(CloudService, "rename_file")
 
-    def test_cloud_service_has_create_directory(self):
-        """CloudService 定义了 create_directory 抽象方法"""
-        assert hasattr(CloudService, "create_directory")
-
     def test_cloud_service_has_get_path_id(self):
         """CloudService 定义了 get_path_id 抽象方法"""
         assert hasattr(CloudService, "get_path_id")
@@ -50,6 +46,9 @@ class TestCloudServiceABC:
     def test_cloud_service_has_get_offline_tasks(self):
         """CloudService 定义了 get_offline_tasks 抽象方法"""
         assert hasattr(CloudService, "get_offline_tasks")
+
+    def test_cloud_service_has_get_offline_task(self):
+        assert hasattr(CloudService, "get_offline_task")
 
     def test_cloud_service_has_delete_offline_task(self):
         """CloudService 定义了 delete_offline_task 抽象方法"""

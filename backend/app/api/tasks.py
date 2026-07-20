@@ -21,11 +21,11 @@ from app.schemas.api import (
 )
 from app.models.offline_task import OfflineTask
 from app.core.database import get_session
-from app.core.dependencies import get_p115_client, get_config
+from app.core.dependencies import get_cloud_service, get_config
 from app.utils.helpers import parse_info_hash_from_magnet, find_library_by_name
 
 if TYPE_CHECKING:
-    from app.services.p115_client import P115Client
+    from app.services.cloud.base import CloudService
     from app.core.config import Config
 
 router = APIRouter()
@@ -34,7 +34,7 @@ router = APIRouter()
 @router.post("/tasks")
 async def add_task(
     request: AddTaskRequest,
-    p115_client: "P115Client" = Depends(get_p115_client),
+    cloud_service: "CloudService" = Depends(get_cloud_service),
     config: "Config" = Depends(get_config),
 ):
     """
@@ -66,7 +66,9 @@ async def add_task(
     logger.debug(f"从 magnet 解析 info_hash: {parsed_info_hash}")
 
     try:
-        path_id = await p115_client.get_path_id(library.download_path)
+        path_id = await cloud_service.get_path_id(
+            library.download_path, library_name=library.name
+        )
     except Exception as e:
         logger.error(f"[add_task] get_path_id throw exception: {str(e)}")
         raise HTTPException(status_code=500, detail=f"获取下载目录 ID 报错: {str(e)}")
@@ -78,7 +80,7 @@ async def add_task(
             status_code=500, detail=f"获取下载目录 ID 失败: {library.download_path}"
         )
 
-    api_result = await p115_client.add_offline_task(request.magnet, path_id)
+    api_result = await cloud_service.add_offline_task(request.magnet, path_id)
     if not api_result.get("state"):
         logger.error(f"[add_task] API 返回失败: {api_result}")
         raise HTTPException(
@@ -130,8 +132,16 @@ async def add_task(
 
             await session.commit()
     except Exception as e:
-        # 数据库保存失败不影响 API 返回成功
         logger.error(f"保存离线任务失败: {e}")
+        if final_info_hash:
+            try:
+                await cloud_service.delete_offline_task(final_info_hash)
+            except Exception as cleanup_error:
+                logger.error(f"回滚 115 离线任务失败: {cleanup_error}")
+        raise HTTPException(
+            status_code=500,
+            detail="任务已提交至 115，但本地记录保存失败；已尝试回滚，请检查日志后重试",
+        ) from e
 
     # 返回最终的 info_hash（None 时返回空字符串避免 API 响应为 null）
     return success_response(
@@ -142,7 +152,7 @@ async def add_task(
 
 @router.get("/tasks")
 async def get_tasks(
-    p115_client: "P115Client" = Depends(get_p115_client),
+    cloud_service: "CloudService" = Depends(get_cloud_service),
     page: int = Query(1, ge=1),
     page_size: int = Query(100, ge=1, le=100),
     status: int | None = Query(None),
@@ -156,11 +166,7 @@ async def get_tasks(
     Raises:
         HTTPException 500: 115 接口调用失败
     """
-    result = await p115_client.get_offline_tasks()
-    if not result.get("state"):
-        raise HTTPException(status_code=500, detail="获取任务列表失败")
-
-    tasks = result.get("tasks") or result.get("data") or []
+    tasks = await cloud_service.get_offline_tasks()
     if status is not None:
         tasks = [task for task in tasks if task.get("status") == status]
     total = len(tasks)
@@ -185,7 +191,7 @@ async def get_tasks(
 @router.get("/tasks/{task_id}")
 async def get_task_detail(
     task_id: str,
-    p115_client: "P115Client" = Depends(get_p115_client),
+    cloud_service: "CloudService" = Depends(get_cloud_service),
 ):
     """
     获取指定任务的详细信息。
@@ -200,7 +206,7 @@ async def get_task_detail(
     Raises:
         HTTPException 404: 任务不存在
     """
-    task = await p115_client.get_task_status(task_id)
+    task = await cloud_service.get_offline_task(task_id)
     if task is None:
         raise HTTPException(status_code=404, detail=f"任务 '{task_id}' 不存在")
 
@@ -221,7 +227,7 @@ async def get_task_detail(
 @router.delete("/tasks/{task_id}")
 async def delete_task(
     task_id: str,
-    p115_client: "P115Client" = Depends(get_p115_client),
+    cloud_service: "CloudService" = Depends(get_cloud_service),
 ):
     """
     删除指定离线任务。
@@ -236,8 +242,7 @@ async def delete_task(
     Raises:
         HTTPException 500: 115 接口调用失败
     """
-    result = await p115_client.delete_offline_task(task_id)
-    if not result.get("state"):
+    if not await cloud_service.delete_offline_task(task_id):
         raise HTTPException(status_code=500, detail="删除任务失败")
 
     return success_response(

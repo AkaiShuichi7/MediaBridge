@@ -34,6 +34,7 @@ class TaskMonitor:
         self._task: Optional[asyncio.Task] = None
         self._stop_event = asyncio.Event()
         self._processed_hashes: set[str] = set()
+        self.last_check_time: Optional[datetime] = None
 
     def _find_library_by_name(self, name: str):
         """通过名称在配置中查找媒体库。"""
@@ -99,8 +100,7 @@ class TaskMonitor:
         except Exception as e:
             logger.error(f"检查任务时发生错误: {e}")
         finally:
-            from app.api.system import update_last_check_time
-            update_last_check_time()
+            self.last_check_time = datetime.now()
 
     async def _process_task(self, task: dict) -> None:
         """处理单个离线任务"""

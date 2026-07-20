@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
+import type { UpdateConfigRequest } from '@/types/api'
 
 /**
  * @description React Query Hooks
@@ -78,7 +79,7 @@ export function useConfig() {
 export function useUpdateConfig() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: UpdateConfigRequest) => {
       const response = await api.put('/api/config', data)
       return response.data.data
     },

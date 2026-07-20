@@ -63,9 +63,7 @@ def mock_p115_client():
         return_value={"state": True, "info_hash": "abc123hash"}
     )
     client.get_offline_tasks = AsyncMock(
-        return_value={
-            "state": True,
-            "tasks": [
+        return_value=[
                 {
                     "info_hash": "task1_hash",
                     "name": "测试任务1",
@@ -80,10 +78,9 @@ def mock_p115_client():
                     "percent_done": 50,
                     "add_time": 1700001000,
                 },
-            ],
-        }
+            ]
     )
-    client.get_task_status = AsyncMock(
+    client.get_offline_task = AsyncMock(
         return_value={
             "info_hash": "task1_hash",
             "name": "测试任务1",
@@ -92,7 +89,7 @@ def mock_p115_client():
             "add_time": 1700000000,
         }
     )
-    client.delete_offline_task = AsyncMock(return_value={"state": True})
+    client.delete_offline_task = AsyncMock(return_value=True)
     client.get_path_id = AsyncMock(return_value="123456")
     return client
 
@@ -144,10 +141,20 @@ async def client(test_app):
 class TestAddTask:
     @pytest.mark.asyncio
     async def test_add_task(self, client, mock_p115_client):
-        response = await client.post(
-            "/api/tasks",
-            json={"magnet": "magnet:?xt=urn:btih:abc123", "library_name": "电影库"},
-        )
+        mock_session = MagicMock()
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = None
+        mock_session.execute = AsyncMock(return_value=mock_result)
+        mock_session.commit = AsyncMock()
+        mock_context = MagicMock()
+        mock_context.__aenter__ = AsyncMock(return_value=mock_session)
+        mock_context.__aexit__ = AsyncMock(return_value=None)
+
+        with patch("app.api.tasks.get_session", return_value=mock_context):
+            response = await client.post(
+                "/api/tasks",
+                json={"magnet": "magnet:?xt=urn:btih:abc123", "library_name": "电影库"},
+            )
 
         assert response.status_code == 200
         data = response.json()
@@ -191,7 +198,7 @@ class TestGetTaskDetail:
 
     @pytest.mark.asyncio
     async def test_get_task_detail_not_found(self, client, mock_p115_client):
-        mock_p115_client.get_task_status = AsyncMock(return_value=None)
+        mock_p115_client.get_offline_task = AsyncMock(return_value=None)
 
         response = await client.get("/api/tasks/nonexistent_hash")
 

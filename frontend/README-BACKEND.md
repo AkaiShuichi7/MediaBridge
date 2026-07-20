@@ -67,8 +67,8 @@ cp config.example.yaml config.yaml
 ```yaml
 p115:
   cookies: "你的115网盘cookies"
-  rotation_training_interval_min: 60
-  rotation_training_interval_max: 80
+  poll_interval_min: 60
+  poll_interval_max: 80
 
 media:
   min_transfer_size: 200  # MB
@@ -328,8 +328,8 @@ interface ApiResponse<T> {
   "message": "操作成功",
   "data": {
     "p115": {
-      "rotation_training_interval_min": 60,
-      "rotation_training_interval_max": 80
+      "poll_interval_min": 60,
+      "poll_interval_max": 80
     },
     "media": {
       "min_transfer_size": 200,
@@ -359,8 +359,8 @@ interface ApiResponse<T> {
 | 参数名 | 类型 | 必填 | 说明 |
 |--------|------|------|------|
 | `p115` | object | 否 | 115 相关配置 |
-| `p115.rotation_training_interval_min` | int | 否 | 轮询最小间隔（秒） |
-| `p115.rotation_training_interval_max` | int | 否 | 轮询最大间隔（秒） |
+| `cloud.poll_interval_min` | int | 否 | 轮询最小间隔（秒） |
+| `cloud.poll_interval_max` | int | 否 | 轮询最大间隔（秒） |
 | `media` | object | 否 | 媒体相关配置 |
 | `media.min_transfer_size` | int | 否 | 最小传输大小（MB） |
 
@@ -368,8 +368,8 @@ interface ApiResponse<T> {
 ```json
 {
   "p115": {
-    "rotation_training_interval_min": 30,
-    "rotation_training_interval_max": 60
+    "poll_interval_min": 30,
+    "poll_interval_max": 60
   }
 }
 ```
@@ -483,8 +483,8 @@ interface OrganizeRecordsResponse {
 
 // 系统配置
 interface P115Config { 
-  rotation_training_interval_min: number; 
-  rotation_training_interval_max: number; 
+  poll_interval_min: number;
+  poll_interval_max: number;
 }
 interface LibraryItem { 
   name: string; 
