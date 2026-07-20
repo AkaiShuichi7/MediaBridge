@@ -5,13 +5,14 @@
 
 import os
 import tempfile
+from errno import EBUSY
 from pathlib import Path
 
 import pytest
 import yaml
 from pydantic import ValidationError
 
-from app.core.config import Config, load_config
+from app.core.config import Config, load_config, save_config
 
 
 # 测试用的合法 YAML 配置内容
@@ -69,6 +70,24 @@ class TestLoadConfigSuccess:
         assert lib.download_path is not None
         assert lib.target_path is not None
         assert lib.type is not None
+
+
+class TestSaveConfig:
+    def test_save_config_falls_back_for_busy_bind_mount(self, tmp_path, monkeypatch):
+        config_file = tmp_path / "config.yaml"
+        config_file.write_text(SAMPLE_CONFIG_YAML, encoding="utf-8")
+        monkeypatch.setenv("CONFIG_PATH", str(config_file))
+        config = load_config()
+        config.media.video_formats.append("webm")
+
+        def raise_busy_replace(self, target):
+            raise OSError(EBUSY, "Device or resource busy")
+
+        monkeypatch.setattr(Path, "replace", raise_busy_replace)
+        save_config(config)
+
+        persisted = yaml.safe_load(config_file.read_text(encoding="utf-8"))
+        assert "webm" in persisted["media"]["video_formats"]
 
 
 class TestConfigNotExistsGenerateTemplate:

@@ -5,6 +5,7 @@
 
 import os
 import sys
+from errno import EBUSY, EXDEV
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
@@ -154,20 +155,28 @@ def load_config() -> Config:
 
 
 def save_config(config: Config) -> None:
-    """Atomically persist configuration changes made through the Web UI."""
+    """Persist Web UI changes, including to Docker bind-mounted config files."""
     config_path = get_config_path()
     config_path.parent.mkdir(parents=True, exist_ok=True)
+    serialized_config = yaml.safe_dump(
+        config.model_dump(mode="json"),
+        allow_unicode=True,
+        sort_keys=False,
+    )
     with NamedTemporaryFile(
         "w", encoding="utf-8", dir=config_path.parent, delete=False
     ) as temp_file:
-        yaml.safe_dump(
-            config.model_dump(mode="json"),
-            temp_file,
-            allow_unicode=True,
-            sort_keys=False,
-        )
+        temp_file.write(serialized_config)
         temp_path = Path(temp_file.name)
-    temp_path.replace(config_path)
+    try:
+        temp_path.replace(config_path)
+    except OSError as exc:
+        if exc.errno not in {EBUSY, EXDEV}:
+            raise
+        # A file mounted from the Docker host cannot be replaced with rename(2),
+        # but it can be updated in place when the mount is read-write.
+        config_path.write_text(serialized_config, encoding="utf-8")
+        temp_path.unlink(missing_ok=True)
 
 
 def _generate_config_template(config_path: Path) -> None:
