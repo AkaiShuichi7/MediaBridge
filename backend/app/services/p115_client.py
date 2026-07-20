@@ -29,7 +29,9 @@ class P115Client:
 
     def __init__(self, cookies: str):
         self._cookies = cookies
-        self._client = P115SyncClient(cookies, check_for_relogin=False)
+        # p115client 0.0.9.4.9.1 accepts cookies directly; the obsolete
+        # check_for_relogin keyword prevents the container from starting.
+        self._client = P115SyncClient(cookies)
 
     @classmethod
     async def get_client(cls, cookies: str) -> "P115Client":

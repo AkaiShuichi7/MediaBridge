@@ -28,6 +28,7 @@ async def test_client_singleton():
 
         # 验证 p115client 只被实例化一次
         assert mock_client_class.call_count == 1
+        mock_client_class.assert_called_once_with("test_cookies_1")
 
 
 @pytest.mark.asyncio
