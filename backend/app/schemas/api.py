@@ -58,9 +58,12 @@ class OrganizeRecordItem(BaseModel):
     """整理记录列表中的单条记录信息项。"""
     id: int = Field(..., description="记录 ID")
     file_name: str = Field(..., description="文件名")
+    original_name: str = Field(..., description="原文件名")
+    organized_name: str = Field(..., description="整理后的文件名")
     source_path: str = Field(..., description="源路径")
     target_path: str = Field(..., description="目标路径")
     status: str = Field(..., description="整理状态")
+    error_message: Optional[str] = Field(None, description="错误信息")
     created_at: datetime = Field(..., description="创建时间")
 
 
@@ -116,6 +119,9 @@ class P115ConfigUpdate(BaseModel):
 class MediaConfigUpdate(BaseModel):
     """媒体配置更新请求，所有字段均为可选。"""
     min_transfer_size: Optional[int] = Field(None, description="默认最小传输大小")
+    video_formats: Optional[list[str]] = None
+    libraries: Optional[list[LibraryItem]] = None
+    xx: Optional[XXConfigResponse] = None
 
 
 class UpdateConfigRequest(BaseModel):

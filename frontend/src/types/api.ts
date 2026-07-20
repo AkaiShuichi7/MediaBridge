@@ -21,10 +21,9 @@ export type TaskStatus = (typeof TASK_STATUS)[keyof typeof TASK_STATUS]
 
 /** 整理记录状态枚举 */
 export const ORGANIZE_STATUS = {
-  /** 成功 */
-  SUCCESS: 0,
-  /** 失败 */
-  FAILED: 1,
+  SUCCESS: 'success',
+  FAILED: 'failed',
+  SKIPPED: 'skipped',
 } as const
 
 export type OrganizeStatus = (typeof ORGANIZE_STATUS)[keyof typeof ORGANIZE_STATUS]
@@ -74,7 +73,7 @@ export interface OrganizeRecordItem {
   source_path: string
   /** 目标路径 */
   target_path: string
-  /** 整理状态: 0=成功, 1=失败 */
+  /** 整理状态 */
   status: OrganizeStatus
   /** 错误信息（失败时） */
   error_message: string | null
@@ -93,9 +92,9 @@ export interface OrganizeRecordsResponse {
 /** 115网盘配置 */
 export interface P115Config {
   /** 轮询最小间隔（秒） */
-  rotation_training_interval_min: number
+  poll_interval_min: number
   /** 轮询最大间隔（秒） */
-  rotation_training_interval_max: number
+  poll_interval_max: number
 }
 
 /** 媒体库项 */

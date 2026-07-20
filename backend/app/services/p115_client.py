@@ -69,12 +69,16 @@ class P115Client:
     async def add_offline_task(self, magnet: str, path_id: str) -> dict:
         """添加离线下载任务"""
         return await self._retry_with_backoff(
-            self._client.offline_add_url, {"url": magnet, "wp_path_id": path_id}
+            self._client.clouddownload_task_add_url,
+            {"url": magnet, "wp_path_id": path_id},
         )
 
     async def get_offline_tasks(self) -> dict:
         """获取离线任务列表"""
-        return await self._retry_with_backoff(self._client.offline_list)
+        return await self._retry_with_backoff(
+            self._client.clouddownload_task_list,
+            {"page": 1, "page_size": 1000},
+        )
 
     async def get_task_status(self, info_hash: str) -> Optional[dict]:
         """获取单个任务状态"""
@@ -83,7 +87,7 @@ class P115Client:
         if not tasks_response.get("state"):
             return None
 
-        tasks = tasks_response.get("tasks") or []
+        tasks = tasks_response.get("tasks") or tasks_response.get("data") or []
         for task in tasks:
             if task.get("info_hash") == info_hash:
                 return task
@@ -93,12 +97,13 @@ class P115Client:
     async def delete_offline_task(self, info_hash: str) -> dict:
         """删除离线任务"""
         return await self._retry_with_backoff(
-            self._client.offline_remove, {"hash": info_hash, "flag": 1}
+            self._client.clouddownload_task_del,
+            {"hash[0]": info_hash, "flag": 0},
         )
 
     async def clear_completed_tasks(self) -> dict:
         """清理已完成的离线任务"""
-        return await self._retry_with_backoff(self._client.offline_clear)
+        return await self._retry_with_backoff(self._client.clouddownload_task_clear, 0)
 
     async def get_path_id(
         self, path: str, mkdir: bool = True, library_name: str = "default"

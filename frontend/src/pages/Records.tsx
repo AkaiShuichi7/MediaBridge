@@ -15,7 +15,7 @@ export default function Records() {
   const [page, setPage] = useState(1)
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const pageSize = 20
-  const statusValue = statusFilter === 'all' ? undefined : parseInt(statusFilter)
+  const statusValue = statusFilter === 'all' ? undefined : statusFilter
 
   const { data, isLoading } = useOrganizeRecords(page, pageSize, statusValue)
 
@@ -30,8 +30,8 @@ export default function Records() {
         <Tabs value={statusFilter} onValueChange={v => { setStatusFilter(v); setPage(1) }}>
           <TabsList>
             <TabsTrigger value="all">全部</TabsTrigger>
-            <TabsTrigger value="0">成功</TabsTrigger>
-            <TabsTrigger value="1">失败</TabsTrigger>
+            <TabsTrigger value="success">成功</TabsTrigger>
+            <TabsTrigger value="failed">失败</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>

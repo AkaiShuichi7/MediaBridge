@@ -58,9 +58,12 @@ async def get_organize_records(
             OrganizeRecordItem(
                 id=record.id,
                 file_name=record.file_name or "",
+                original_name=(record.source_path or "").rsplit("/", 1)[-1] or record.file_name or "",
+                organized_name=record.file_name or "",
                 source_path=record.source_path or "",
                 target_path=record.target_path or "",
                 status=record.status or "",
+                error_message=record.error_message,
                 created_at=record.created_at,
             )
             for record in records

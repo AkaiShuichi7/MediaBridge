@@ -75,8 +75,8 @@ export default function Settings() {
     if (configData) {
       setFormData({
         p115: {
-          rotation_training_interval_min: configData.p115.rotation_training_interval_min,
-          rotation_training_interval_max: configData.p115.rotation_training_interval_max,
+          poll_interval_min: configData.p115.poll_interval_min,
+          poll_interval_max: configData.p115.poll_interval_max,
         },
         media: {
           min_transfer_size: configData.media.min_transfer_size,
@@ -420,8 +420,8 @@ export default function Settings() {
                   type="number"
                   min={10}
                   max={300}
-                  value={formData.p115?.rotation_training_interval_min || ''}
-                  onChange={(e) => handleInputChange('p115', 'rotation_training_interval_min', parseInt(e.target.value) || 0)}
+                  value={formData.p115?.poll_interval_min || ''}
+                  onChange={(e) => handleInputChange('p115', 'poll_interval_min', parseInt(e.target.value) || 0)}
                 />
               </div>
               <div className="space-y-2">
@@ -431,8 +431,8 @@ export default function Settings() {
                   type="number"
                   min={10}
                   max={600}
-                  value={formData.p115?.rotation_training_interval_max || ''}
-                  onChange={(e) => handleInputChange('p115', 'rotation_training_interval_max', parseInt(e.target.value) || 0)}
+                  value={formData.p115?.poll_interval_max || ''}
+                  onChange={(e) => handleInputChange('p115', 'poll_interval_max', parseInt(e.target.value) || 0)}
                 />
               </div>
             </div>

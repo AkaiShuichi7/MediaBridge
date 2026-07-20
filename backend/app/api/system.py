@@ -49,7 +49,7 @@ async def get_status(
         try:
             result = await p115_client.get_offline_tasks()
             if result.get("state"):
-                tasks = result.get("tasks", [])
+                tasks = result.get("tasks") or result.get("data") or []
                 active_tasks = sum(1 for t in tasks if t.get("status") == 0)
         except Exception:
             pass

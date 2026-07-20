@@ -145,7 +145,7 @@ class P115CloudService(CloudService):
             任务信息字典组成的列表
         """
         result = await self._client.get_offline_tasks()
-        tasks = result.get("tasks") if isinstance(result, dict) else None
+        tasks = (result.get("tasks") or result.get("data")) if isinstance(result, dict) else None
         tasks = tasks or []
         logger.debug(f"获取到 {len(tasks)} 个离线任务")
         return tasks

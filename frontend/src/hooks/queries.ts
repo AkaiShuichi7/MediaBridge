@@ -88,7 +88,7 @@ export function useUpdateConfig() {
   })
 }
 
-export function useOrganizeRecords(page = 1, pageSize = 10, status?: number) {
+export function useOrganizeRecords(page = 1, pageSize = 10, status?: string) {
   return useQuery({
     queryKey: ['organize-records', page, pageSize, status],
     queryFn: async () => {

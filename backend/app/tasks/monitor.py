@@ -84,6 +84,8 @@ class TaskMonitor:
 
             # 2. 获取 115 离线任务列表（CloudService 返回已解析的列表）
             tasks = await self._client.get_offline_tasks()
+            if isinstance(tasks, dict):
+                tasks = tasks.get("tasks") or tasks.get("data") or []
             if not isinstance(tasks, list):
                 logger.error(f"获取离线任务列表返回异常类型: {type(tasks)}")
                 return
@@ -96,6 +98,9 @@ class TaskMonitor:
 
         except Exception as e:
             logger.error(f"检查任务时发生错误: {e}")
+        finally:
+            from app.api.system import update_last_check_time
+            update_last_check_time()
 
     async def _process_task(self, task: dict) -> None:
         """处理单个离线任务"""
@@ -108,15 +113,15 @@ class TaskMonitor:
 
         if status == 2:
             logger.info(f"任务 [{name}] 已完成，开始整理文件")
-            await self._handle_completed_task(task)
-            self._processed_hashes.add(info_hash)
+            if await self._handle_completed_task(task):
+                self._processed_hashes.add(info_hash)
 
         elif status < 0:  # 负数表示失败（如 -1）
             logger.warning(f"任务 [{name}] 下载失败 (status={status})")
             await self._handle_failed_task(task)
             self._processed_hashes.add(info_hash)
 
-    async def _handle_completed_task(self, task: dict) -> None:
+    async def _handle_completed_task(self, task: dict) -> bool:
         """处理已完成的任务 - 触发文件整理"""
         info_hash = task.get("info_hash")
 
@@ -149,7 +154,7 @@ class TaskMonitor:
             logger.error(
                 f"无法确定任务 [{task.get('name', 'unknown')}] 的 library 配置，跳过整理"
             )
-            return
+            return False
 
         task_path = task.get("path", "")
         download_path_id = ""
@@ -196,32 +201,61 @@ class TaskMonitor:
                 f"失败 {result['failed_count']}, 跳过 {result['skipped_count']}"
             )
 
+            if result["failed_count"]:
+                await self._update_task_status(
+                    info_hash, "organize_failed", "; ".join(result.get("errors", []))
+                )
+                return False
+
+            await self._update_task_status(info_hash, "completed")
             try:
-                await self._client.delete_offline_task(task.get("info_hash"))
-                logger.info(f"任务 [{task_info['name']}] 已自动清理原始文件")
+                await self._client.delete_offline_task(info_hash)
             except Exception as e:
                 logger.warning(f"任务 [{task_info['name']}] 清理失败: {e}")
+            return True
 
         except Exception as e:
             logger.error(f"整理任务时发生错误: {e}")
+            await self._update_task_status(info_hash, "organize_failed", str(e))
+            return False
 
     async def _handle_failed_task(self, task: dict) -> None:
         """处理失败的任务 - 保存记录到数据库"""
         try:
             async with get_session() as session:
-                offline_task = OfflineTask(
-                    info_hash=task.get("info_hash"),
-                    name=task.get("name"),
-                    library_name=None,
-                    status="failed",
-                    add_time=datetime.fromtimestamp(task.get("add_time", 0)),
-                    error_message=task.get("error_msg", "下载失败"),
+                result = await session.execute(
+                    select(OfflineTask).where(OfflineTask.info_hash == task.get("info_hash"))
                 )
-                session.add(offline_task)
+                offline_task = result.scalar_one_or_none()
+                if offline_task is None:
+                    offline_task = OfflineTask(info_hash=task.get("info_hash"))
+                    session.add(offline_task)
+                offline_task.name = task.get("name")
+                offline_task.status = "failed"
+                offline_task.add_time = datetime.fromtimestamp(task.get("add_time", 0))
+                offline_task.error_message = task.get("error_msg", "下载失败")
                 await session.commit()
                 logger.info(f"失败任务已记录到数据库: {task.get('name')}")
         except Exception as e:
             logger.error(f"保存失败任务记录时出错: {e}")
+
+    async def _update_task_status(
+        self, info_hash: str | None, status: str, error_message: str | None = None
+    ) -> None:
+        if not info_hash:
+            return
+        async with get_session() as session:
+            result = await session.execute(
+                select(OfflineTask).where(OfflineTask.info_hash == info_hash)
+            )
+            offline_task = result.scalar_one_or_none()
+            if offline_task is None or not hasattr(offline_task, "status"):
+                return
+            offline_task.status = status
+            offline_task.error_message = error_message
+            if status == "completed":
+                offline_task.complete_time = datetime.now()
+            await session.commit()
 
     def _get_random_interval(self) -> float:
         """获取随机轮询间隔（秒），配置缺失时使用默认常量"""

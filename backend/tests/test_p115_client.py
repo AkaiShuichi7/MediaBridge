@@ -36,7 +36,7 @@ async def test_add_offline_task():
     with patch("app.services.p115_client.P115SyncClient") as mock_client_class:
         # 模拟 p115client 实例和方法
         mock_instance = MagicMock()
-        mock_instance.offline_add_url = MagicMock(
+        mock_instance.clouddownload_task_add_url = MagicMock(
             return_value={"state": True, "info_hash": "abc123"}
         )
         mock_client_class.return_value = mock_instance
@@ -47,7 +47,7 @@ async def test_add_offline_task():
         result = await client.add_offline_task("magnet:?xt=urn:btih:test", "dir_id_123")
 
         # 验证调用参数
-        mock_instance.offline_add_url.assert_called_once_with(
+        mock_instance.clouddownload_task_add_url.assert_called_once_with(
             {"url": "magnet:?xt=urn:btih:test", "wp_path_id": "dir_id_123"}
         )
 
@@ -64,7 +64,7 @@ async def test_retry_on_failure():
         mock_instance = MagicMock()
 
         # 模拟前 2 次失败,第 3 次成功
-        mock_instance.offline_list = MagicMock(
+        mock_instance.clouddownload_task_list = MagicMock(
             side_effect=[
                 Exception("Network error"),
                 Exception("Timeout"),
@@ -79,7 +79,7 @@ async def test_retry_on_failure():
         result = await client.get_offline_tasks()
 
         # 验证调用 3 次
-        assert mock_instance.offline_list.call_count == 3
+        assert mock_instance.clouddownload_task_list.call_count == 3
 
         # 验证最终返回成功结果
         assert result["state"] is True

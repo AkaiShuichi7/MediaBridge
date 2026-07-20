@@ -11,36 +11,47 @@ from httpx import ASGITransport, AsyncClient
 from fastapi import FastAPI
 
 from app.api import tasks, organize, config, system
+from app.core.config import (
+    CloudConfig,
+    Config,
+    LibraryConfig,
+    MediaConfig,
+    P115Config,
+    XXConfig,
+)
 
 
 @pytest.fixture
 def mock_config():
     """模拟配置对象"""
-    cfg = MagicMock()
-    cfg.cloud.p115.cookies = "test_cookies"
-    cfg.cloud.poll_interval_min = 60
-    cfg.cloud.poll_interval_max = 80
-
-    library1 = MagicMock()
-    library1.name = "电影库"
-    library1.download_path = "/云下载/电影"
-    library1.target_path = "/媒体库/电影"
-    library1.type = "system"
-    library1.min_transfer_size = 100
-
-    library2 = MagicMock()
-    library2.name = "成人库"
-    library2.download_path = "/云下载/成人"
-    library2.target_path = "/媒体库/成人"
-    library2.type = "xx-SSNI"
-    library2.min_transfer_size = 200
-
-    cfg.media.libraries = [library1, library2]
-    cfg.media.video_formats = ["mp4", "mkv"]
-    cfg.media.min_transfer_size = 150
-    cfg.media.xx.remove_keywords = ["hhd800.com@"]
-
-    return cfg
+    return Config(
+        cloud=CloudConfig(
+            p115=P115Config(cookies="test_cookies"),
+            poll_interval_min=60,
+            poll_interval_max=80,
+        ),
+        media=MediaConfig(
+            libraries=[
+                LibraryConfig(
+                    name="电影库",
+                    download_path="/云下载/电影",
+                    target_path="/媒体库/电影",
+                    type="system",
+                    min_transfer_size=100,
+                ),
+                LibraryConfig(
+                    name="成人库",
+                    download_path="/云下载/成人",
+                    target_path="/媒体库/成人",
+                    type="xx-SSNI",
+                    min_transfer_size=200,
+                ),
+            ],
+            video_formats=["mp4", "mkv"],
+            min_transfer_size=150,
+            xx=XXConfig(remove_keywords=["hhd800.com@"]),
+        ),
+    )
 
 
 @pytest.fixture
@@ -243,15 +254,22 @@ class TestGetConfig:
 class TestUpdateConfig:
     @pytest.mark.asyncio
     async def test_update_config(self, client):
-        response = await client.put(
-            "/api/config",
-            json={
-                "p115": {
-                    "poll_interval_min": 70,
-                    "poll_interval_max": 90,
-                }
-            },
-        )
+        with patch("app.api.config.save_config") as save_config:
+            response = await client.put(
+                "/api/config",
+                json={
+                    "p115": {
+                        "poll_interval_min": 70,
+                        "poll_interval_max": 90,
+                    },
+                    "media": {
+                        "video_formats": ["mp4"],
+                        "libraries": [],
+                        "xx": {"remove_keywords": ["sample"]},
+                    },
+                },
+            )
+        save_config.assert_called_once()
 
         assert response.status_code == 200
         data = response.json()

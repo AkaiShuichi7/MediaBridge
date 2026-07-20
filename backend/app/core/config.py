@@ -6,6 +6,7 @@
 import os
 import sys
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 
 import yaml
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -24,6 +25,14 @@ class CloudConfig(BaseModel):
     poll_interval_min: int = Field(60, description="离线任务监控轮询间隔最小值（秒）")
     poll_interval_max: int = Field(80, description="离线任务监控轮询间隔最大值（秒）")
     p115: P115Config = Field(..., description="115 网盘配置")
+
+    @model_validator(mode="after")
+    def validate_poll_interval(self):
+        if self.poll_interval_min <= 0 or self.poll_interval_max <= 0:
+            raise ValueError("轮询间隔必须大于 0")
+        if self.poll_interval_min > self.poll_interval_max:
+            raise ValueError("最小轮询间隔不能大于最大轮询间隔")
+        return self
 
 
 class LibraryConfig(BaseModel):
@@ -142,6 +151,23 @@ def load_config() -> Config:
         config.cloud.p115.cookies = cookies
 
     return config
+
+
+def save_config(config: Config) -> None:
+    """Atomically persist configuration changes made through the Web UI."""
+    config_path = get_config_path()
+    config_path.parent.mkdir(parents=True, exist_ok=True)
+    with NamedTemporaryFile(
+        "w", encoding="utf-8", dir=config_path.parent, delete=False
+    ) as temp_file:
+        yaml.safe_dump(
+            config.model_dump(mode="json"),
+            temp_file,
+            allow_unicode=True,
+            sort_keys=False,
+        )
+        temp_path = Path(temp_file.name)
+    temp_path.replace(config_path)
 
 
 def _generate_config_template(config_path: Path) -> None:

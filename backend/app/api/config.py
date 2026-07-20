@@ -19,6 +19,7 @@ from app.schemas.api import (
     success_response,
 )
 from app.core.dependencies import get_config as _get_config_dep
+from app.core.config import save_config
 
 if TYPE_CHECKING:
     from app.core.config import Config
@@ -67,15 +68,31 @@ async def update_config(
     config: "Config" = Depends(_get_config_dep),
 ):
     """更新系统配置项。"""
+    # Validate a complete copy before mutating the shared runtime configuration.
+    # This prevents an invalid partial request from leaving the application in an
+    # unusable state when saving the YAML file fails validation.
+    updated_config = config.model_copy(deep=True)
+
     if request.p115:
         if request.p115.poll_interval_min is not None:
-            config.cloud.poll_interval_min = request.p115.poll_interval_min
+            updated_config.cloud.poll_interval_min = request.p115.poll_interval_min
         if request.p115.poll_interval_max is not None:
-            config.cloud.poll_interval_max = request.p115.poll_interval_max
+            updated_config.cloud.poll_interval_max = request.p115.poll_interval_max
 
     if request.media:
         if request.media.min_transfer_size is not None:
-            config.media.min_transfer_size = request.media.min_transfer_size
+            updated_config.media.min_transfer_size = request.media.min_transfer_size
+        if request.media.video_formats is not None:
+            updated_config.media.video_formats = request.media.video_formats
+        if request.media.libraries is not None:
+            updated_config.media.libraries = request.media.libraries
+        if request.media.xx is not None:
+            updated_config.media.xx.remove_keywords = request.media.xx.remove_keywords
+
+    validated_config = type(config).model_validate(updated_config.model_dump())
+    save_config(validated_config)
+    config.cloud = validated_config.cloud
+    config.media = validated_config.media
 
     return success_response(
         data=UpdateConfigResponse(message="配置更新成功"),

@@ -187,6 +187,9 @@ class TestCheckTasksFailure:
 
             # Mock 数据库会话，用于保存失败任务记录
             mock_session_for_save = MagicMock()
+            mock_result_for_save = MagicMock()
+            mock_result_for_save.scalar_one_or_none.return_value = None
+            mock_session_for_save.execute = AsyncMock(return_value=mock_result_for_save)
             mock_session_for_save.add = MagicMock()
             mock_session_for_save.commit = AsyncMock()
 

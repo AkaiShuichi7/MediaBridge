@@ -44,7 +44,7 @@ async def init_db(database_url: str | None = None):
     from app.models.organize_record import OrganizeRecord
     from app.models.path_id_cache import PathIdCache
 
-    url = database_url or get_database_url()
+    url = os.environ.get("DATABASE_URL") or database_url or get_database_url()
     init_engine(url)
 
     # SQLite 相对路径 → 确保目录存在

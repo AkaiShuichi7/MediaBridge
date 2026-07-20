@@ -23,12 +23,13 @@ export function TaskStatusBadge({ status, className }: TaskStatusBadgeProps) {
   )
 }
 
-interface OrganizeStatusBadgeProps { status: number; className?: string }
+interface OrganizeStatusBadgeProps { status: string; className?: string }
 
 export function OrganizeStatusBadge({ status, className }: OrganizeStatusBadgeProps) {
-  const config: Record<number, { label: string; className: string }> = {
+  const config: Record<string, { label: string; className: string }> = {
     [ORGANIZE_STATUS.SUCCESS]: { label: '成功', className: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/20' },
     [ORGANIZE_STATUS.FAILED]: { label: '失败', className: 'bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20' },
+    [ORGANIZE_STATUS.SKIPPED]: { label: '已跳过', className: 'bg-gray-500/10 text-gray-500 border-gray-500/20 hover:bg-gray-500/20' },
   }
   
   const { label, className: statusClassName } = config[status] || { label: '未知', className: 'bg-gray-500/10 text-gray-500 border-gray-500/20' }

@@ -6,7 +6,7 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Query
 from loguru import logger
 from sqlalchemy import select
 
@@ -143,6 +143,9 @@ async def add_task(
 @router.get("/tasks")
 async def get_tasks(
     p115_client: "P115Client" = Depends(get_p115_client),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(100, ge=1, le=100),
+    status: int | None = Query(None),
 ):
     """
     获取115离线任务列表。
@@ -157,7 +160,11 @@ async def get_tasks(
     if not result.get("state"):
         raise HTTPException(status_code=500, detail="获取任务列表失败")
 
-    tasks = result.get("tasks") or []
+    tasks = result.get("tasks") or result.get("data") or []
+    if status is not None:
+        tasks = [task for task in tasks if task.get("status") == status]
+    total = len(tasks)
+    tasks = tasks[(page - 1) * page_size : page * page_size]
     task_items = [
         TaskItem(
             task_id=task.get("info_hash", ""),
@@ -170,7 +177,7 @@ async def get_tasks(
     ]
 
     return success_response(
-        data=TaskListResponse(total=len(task_items), tasks=task_items),
+        data=TaskListResponse(total=total, tasks=task_items),
         message="获取任务列表成功",
     )
 
