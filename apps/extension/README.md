@@ -6,6 +6,9 @@ icons placed beside a magnet link in the same download row. It never submits a
 task automatically: open the extension popup,
 select a library, then confirm the submission.
 
+Use **Cancel** to discard a captured link. Cancelling or submitting a task
+clears the pending capture and closes the automatically opened popup.
+
 ## Install for development
 
 ```bash

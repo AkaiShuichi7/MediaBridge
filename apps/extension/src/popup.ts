@@ -71,6 +71,7 @@ async function submitTask() {
     chrome.action.setBadgeText({ text: '' })
     render()
     show('离线任务已提交到 MediaBridge。')
+    window.setTimeout(() => window.close(), 150)
   } catch (error) {
     show(error instanceof Error ? error.message : '任务提交失败。', true)
   }
@@ -99,13 +100,14 @@ async function discardCapturedMagnet() {
   await chrome.action.setBadgeText({ text: '' })
   render()
   show('已取消本次待发送任务。')
+  window.setTimeout(() => window.close(), 100)
 }
 
 function render() {
   const configured = Boolean(state.settings.serverUrl && state.settings.token)
   const hasMagnet = Boolean(state.magnet)
   app.innerHTML = `
-    <section class="header"><strong>MediaBridge</strong><span>磁力任务助手 v0.1.4</span></section>
+    <section class="header"><strong>MediaBridge</strong><span>磁力任务助手 v0.1.5</span></section>
     <section class="card"><label>MediaBridge 地址<input id="server-url" type="url" placeholder="https://media.example.com" value="${state.settings.serverUrl}" /></label>
     <label>访问令牌<input id="token" type="password" placeholder="mb_…" value="${state.settings.token}" /></label>
     <button id="save" class="secondary">保存并连接</button></section>

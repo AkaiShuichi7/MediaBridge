@@ -1,8 +1,27 @@
 (() => {
+  let lastCapturedValue = ''
+  let lastCapturedAt = 0
+
   const capture = (value) => {
     if (typeof value !== 'string' || !/^magnet:\?xt=urn:btih:/i.test(value)) return
+    value = value.trim()
+    const now = Date.now()
+    if (value === lastCapturedValue && now - lastCapturedAt < 2000) return
+    lastCapturedValue = value
+    lastCapturedAt = now
     chrome.storage.local.set({ capturedMagnet: { value, title: document.title } })
     chrome.runtime.sendMessage({ type: 'magnet-captured' })
+  }
+
+  const findContextualMagnet = (target) => {
+    let element = target instanceof Element ? target : null
+    for (let depth = 0; element && depth < 5; depth += 1, element = element.parentElement) {
+      const link = element.matches('a[href^="magnet:"]')
+        ? element
+        : element.querySelector('a[href^="magnet:"]')
+      if (link) return link.getAttribute('href')
+    }
+    return null
   }
 
   window.addEventListener('message', (event) => {
@@ -13,23 +32,15 @@
   // Some sites render a styled copy control inside an ordinary magnet anchor.
   // The magnet is not visible in the UI, but is still available as the href.
   document.addEventListener('click', (event) => {
-    let element = event.target instanceof Element ? event.target : null
-    // A common layout places the copy icon and magnet anchor as siblings in a
-    // small list item. Search that local container before trying Clipboard.
-    for (let depth = 0; element && depth < 5; depth += 1, element = element.parentElement) {
-      const link = element.matches('a[href^="magnet:"]')
-        ? element
-        : element.querySelector('a[href^="magnet:"]')
-      if (link) {
-        capture(link.getAttribute('href'))
-        return
-      }
-    }
+    capture(findContextualMagnet(event.target))
   }, true)
 
   // Some sites use an internal clipboard helper that cannot be patched from
   // the page world. Probe only after an intentional click on a copy/magnet UI.
   document.addEventListener('click', (event) => {
+    // The preceding listener already captured a nearby magnet anchor. Do not
+    // start the delayed Clipboard fallback for the same user click.
+    if (findContextualMagnet(event.target)) return
     let element = event.target instanceof Element ? event.target : null
     const labels = []
     // Copy icons often have no own text: inspect their small button/card
