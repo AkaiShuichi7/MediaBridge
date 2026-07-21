@@ -13,9 +13,14 @@
   // Some sites use an internal clipboard helper that cannot be patched from
   // the page world. Probe only after an intentional click on a copy/magnet UI.
   document.addEventListener('click', (event) => {
-    const trigger = event.target?.closest?.('button, a, [role="button"]')
-    if (!trigger) return
-    const label = `${trigger.textContent || ''} ${trigger.getAttribute('aria-label') || ''} ${trigger.getAttribute('title') || ''}`
+    let element = event.target instanceof Element ? event.target : null
+    const labels = []
+    // Copy icons often have no own text: inspect their small button/card
+    // ancestor rather than requiring the clicked SVG itself to be labelled.
+    for (let depth = 0; element && depth < 4; depth += 1, element = element.parentElement) {
+      labels.push(element.textContent || '', element.getAttribute('aria-label') || '', element.getAttribute('title') || '')
+    }
+    const label = labels.join(' ')
     if (!/(magnet|磁力|copy|复制)/i.test(label)) return
     window.setTimeout(() => {
       chrome.runtime.sendMessage({ type: 'read-clipboard' }, (response) => capture(response?.text))

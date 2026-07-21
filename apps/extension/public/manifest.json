@@ -8,7 +8,7 @@
   "permissions": ["storage", "clipboardRead", "offscreen"],
   "optional_host_permissions": ["http://*/*", "https://*/*"],
   "content_scripts": [
-    { "matches": ["<all_urls>"], "js": ["page-hook.js"], "world": "MAIN", "run_at": "document_start" },
-    { "matches": ["<all_urls>"], "js": ["capture.js"], "run_at": "document_start" }
+    { "matches": ["<all_urls>"], "js": ["page-hook.js"], "world": "MAIN", "run_at": "document_start", "all_frames": true },
+    { "matches": ["<all_urls>"], "js": ["capture.js"], "run_at": "document_start", "all_frames": true }
   ]
 }
