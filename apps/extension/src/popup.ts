@@ -93,22 +93,31 @@ async function readClipboardManually() {
   }
 }
 
+async function discardCapturedMagnet() {
+  state.magnet = undefined
+  await chrome.storage.local.remove('capturedMagnet')
+  await chrome.action.setBadgeText({ text: '' })
+  render()
+  show('已取消本次待发送任务。')
+}
+
 function render() {
   const configured = Boolean(state.settings.serverUrl && state.settings.token)
   const hasMagnet = Boolean(state.magnet)
   app.innerHTML = `
-    <section class="header"><strong>MediaBridge</strong><span>磁力任务助手 v0.1.1</span></section>
+    <section class="header"><strong>MediaBridge</strong><span>磁力任务助手 v0.1.2</span></section>
     <section class="card"><label>MediaBridge 地址<input id="server-url" type="url" placeholder="https://media.example.com" value="${state.settings.serverUrl}" /></label>
     <label>访问令牌<input id="token" type="password" placeholder="mb_…" value="${state.settings.token}" /></label>
     <button id="save" class="secondary">保存并连接</button></section>
     <section class="card ${hasMagnet ? '' : 'empty'}"><h2>已捕获的磁力链接</h2>
       ${hasMagnet ? `<p class="title">${state.magnet?.title || '当前页面资源'}</p><code>${state.magnet?.value}</code>
       <label>目标媒体库<select id="library"><option value="">请选择</option>${state.libraries.map((library) => `<option value="${library.name}">${library.name}</option>`).join('')}</select></label>
-      <button id="submit" ${configured && state.libraries.length ? '' : 'disabled'}>发送到 MediaBridge</button>` : '<p>点击页面中的“复制磁力链接”按钮后，链接会显示在这里；插件不会自动提交。</p><button id="read-clipboard" class="secondary">读取剪贴板中的磁力链接</button>'}
+      <div class="actions"><button id="submit" ${configured && state.libraries.length ? '' : 'disabled'}>发送到 MediaBridge</button><button id="discard" class="secondary">取消</button></div>` : '<p>点击页面中的“复制磁力链接”按钮后，链接会显示在这里；插件不会自动提交。</p><button id="read-clipboard" class="secondary">读取剪贴板中的磁力链接</button>'}
     </section><p id="notice" class="notice"></p>`
   document.querySelector('#save')?.addEventListener('click', () => void saveSettings())
   document.querySelector('#submit')?.addEventListener('click', () => void submitTask())
   document.querySelector('#read-clipboard')?.addEventListener('click', () => void readClipboardManually())
+  document.querySelector('#discard')?.addEventListener('click', () => void discardCapturedMagnet())
 }
 
 async function start() {

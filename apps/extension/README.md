@@ -12,7 +12,12 @@ npm run build
 ```
 
 Open `chrome://extensions`, enable Developer mode, choose **Load unpacked**,
-and select `apps/extension/dist`.
+and select `apps/extension/dist`. The manifest includes a stable development
+key, so builds extracted to different folders keep the same extension ID.
+
+Before loading this version, remove every older MediaBridge unpacked extension
+from `chrome://extensions`. Keep exactly one enabled copy; otherwise a content
+script from one extension and a popup from another use separate storage.
 
 ## Configure
 

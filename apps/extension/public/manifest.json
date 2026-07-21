@@ -1,7 +1,8 @@
 {
   "manifest_version": 3,
   "name": "MediaBridge",
-  "version": "0.1.1",
+  "version": "0.1.2",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsUPpfQcR9RxQuhTJqb+QqyECC0cfia5ii2FHWta8GKTfWwA4+DecQv0imCdhrMl2tpoFykPH3MC8pD9fsZSlLRcJrKRfjw77ejMYn8JQHOsm7ZrYqDHKqKEZtaB1KwLfqluJ+AKOEmLn2p26nZdl+IH1y+YTVuHkimDI6JZXQfZxhfM1S4ptf0GjBAiGa8731i2aeqpdJMEkMRi37PnCRB3hhoCpLT3BH/DRCc1oarsJtUyMGzsbJgLsWw3Lv8B03KNdBpZ8P/oU+gGHMBLw74KmNC+t1S3WYuwZdEYV9EuPVwhB+ShmH2J1CCqh6XXfwJG7raj4nvL56VMGqUXT2wIDAQAB",
   "description": "Capture copied magnet links and submit them to MediaBridge.",
   "action": { "default_popup": "index.html", "default_title": "MediaBridge" },
   "background": { "service_worker": "service-worker.js", "type": "module" },
