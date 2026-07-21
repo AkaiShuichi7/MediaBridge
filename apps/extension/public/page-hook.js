@@ -3,6 +3,15 @@
   const emit = (value) => {
     if (isMagnet(value)) window.postMessage({ source: 'mediabridge-page-hook', type: 'magnet-copied', value: value.trim() }, '*')
   }
+  const selectedText = () => {
+    const active = document.activeElement
+    if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) {
+      const start = active.selectionStart ?? 0
+      const end = active.selectionEnd ?? active.value.length
+      return active.value.slice(start, end)
+    }
+    return window.getSelection()?.toString() || ''
+  }
   try {
     const originalWriteText = navigator.clipboard?.writeText?.bind(navigator.clipboard)
     if (originalWriteText) {
@@ -23,6 +32,19 @@
       }
     }
   } catch { /* A page may expose a read-only Clipboard implementation. */ }
+  try {
+    const originalExecCommand = document.execCommand.bind(document)
+    document.execCommand = (command, ...args) => {
+      const isCopy = String(command).toLowerCase() === 'copy'
+      const beforeCopy = isCopy ? selectedText() : ''
+      const result = originalExecCommand(command, ...args)
+      if (isCopy) {
+        emit(beforeCopy)
+        window.setTimeout(() => emit(selectedText()), 0)
+      }
+      return result
+    }
+  } catch { /* A page may expose a read-only execCommand implementation. */ }
   document.addEventListener('copy', (event) => {
     emit(event.clipboardData?.getData('text/plain'))
     // execCommand('copy') and some libraries populate clipboardData after the

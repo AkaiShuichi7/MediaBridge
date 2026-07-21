@@ -4,7 +4,8 @@ The first version captures a magnet link only after the user clicks a site's
 copy action or a magnet link styled as a copy control. It also detects copy
 icons placed beside a magnet link in the same download row. It also observes
 actual browser copy events and Clipboard API calls, then captures only content
-that validates as a magnet link. Other page clicks are ignored. It never
+that validates as a magnet link. ClipboardJS/`execCommand` copies and
+`data-clipboard-text` controls are supported as well. Other page clicks are ignored. It never
 submits a task automatically: open the extension popup,
 select a library, then confirm the submission.
 

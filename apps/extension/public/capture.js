@@ -16,6 +16,8 @@
 
   const findContextualMagnet = (target) => {
     if (!(target instanceof Element)) return null
+    const clipboardValue = target.closest('[data-clipboard-text]')?.getAttribute('data-clipboard-text')
+    if (clipboardValue) return clipboardValue
     const directLink = target.closest('a[href^="magnet:"]')
     if (directLink) return directLink.getAttribute('href')
 
