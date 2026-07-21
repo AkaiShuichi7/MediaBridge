@@ -13,8 +13,18 @@
   // Some sites render a styled copy control inside an ordinary magnet anchor.
   // The magnet is not visible in the UI, but is still available as the href.
   document.addEventListener('click', (event) => {
-    const link = event.target instanceof Element ? event.target.closest('a[href^="magnet:"]') : null
-    if (link) capture(link.getAttribute('href'))
+    let element = event.target instanceof Element ? event.target : null
+    // A common layout places the copy icon and magnet anchor as siblings in a
+    // small list item. Search that local container before trying Clipboard.
+    for (let depth = 0; element && depth < 5; depth += 1, element = element.parentElement) {
+      const link = element.matches('a[href^="magnet:"]')
+        ? element
+        : element.querySelector('a[href^="magnet:"]')
+      if (link) {
+        capture(link.getAttribute('href'))
+        return
+      }
+    }
   }, true)
 
   // Some sites use an internal clipboard helper that cannot be patched from
