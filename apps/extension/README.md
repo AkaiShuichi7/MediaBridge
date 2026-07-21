@@ -2,8 +2,8 @@
 
 The first version captures a magnet link only after the user clicks a site's
 copy action or a magnet link styled as a copy control. It also detects copy
-icons placed beside a magnet link in the same download row. It never submits a
-task automatically: open the extension popup,
+icons placed beside a magnet link in the same download row. Other page clicks
+are ignored. It never submits a task automatically: open the extension popup,
 select a library, then confirm the submission.
 
 Use **Cancel** to discard a captured link. Cancelling clears the pending

@@ -14,14 +14,17 @@
   }
 
   const findContextualMagnet = (target) => {
-    let element = target instanceof Element ? target : null
-    for (let depth = 0; element && depth < 5; depth += 1, element = element.parentElement) {
-      const link = element.matches('a[href^="magnet:"]')
-        ? element
-        : element.querySelector('a[href^="magnet:"]')
-      if (link) return link.getAttribute('href')
-    }
-    return null
+    if (!(target instanceof Element)) return null
+    const directLink = target.closest('a[href^="magnet:"]')
+    if (directLink) return directLink.getAttribute('href')
+
+    // The site's copy icon is an <i> sibling of the magnet <a> in the same
+    // download-row <li>. Deliberately inspect only that immediate row: looking
+    // through arbitrary ancestors makes unrelated page clicks false positives.
+    const copyControl = target.closest('i, button, [role="button"], [data-copy], [class*="copy"]')
+    const row = copyControl?.parentElement
+    const siblingLink = row?.querySelector(':scope > a[href^="magnet:"]')
+    return siblingLink?.getAttribute('href') || null
   }
 
   window.addEventListener('message', (event) => {
@@ -41,7 +44,10 @@
     // The preceding listener already captured a nearby magnet anchor. Do not
     // start the delayed Clipboard fallback for the same user click.
     if (findContextualMagnet(event.target)) return
-    let element = event.target instanceof Element ? event.target : null
+    if (!(event.target instanceof Element)) return
+    const copyControl = event.target.closest('i, button, [role="button"], [data-copy], [class*="copy"]')
+    if (!copyControl) return
+    let element = copyControl
     const labels = []
     // Copy icons often have no own text: inspect their small button/card
     // ancestor rather than requiring the clicked SVG itself to be labelled.
