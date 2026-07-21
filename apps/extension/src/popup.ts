@@ -76,21 +76,39 @@ async function submitTask() {
   }
 }
 
+async function readClipboardManually() {
+  try {
+    const value = await navigator.clipboard.readText()
+    if (!/^magnet:\?xt=urn:btih:/i.test(value.trim())) {
+      show('剪贴板中未找到有效的磁力链接。', true)
+      return
+    }
+    state.magnet = { value: value.trim() }
+    await chrome.storage.local.set({ capturedMagnet: state.magnet })
+    await chrome.action.setBadgeText({ text: '1' })
+    render()
+    show('已从剪贴板读取磁力链接。')
+  } catch {
+    show('无法读取剪贴板；请确认已授予剪贴板权限。', true)
+  }
+}
+
 function render() {
   const configured = Boolean(state.settings.serverUrl && state.settings.token)
   const hasMagnet = Boolean(state.magnet)
   app.innerHTML = `
-    <section class="header"><strong>MediaBridge</strong><span>磁力任务助手</span></section>
+    <section class="header"><strong>MediaBridge</strong><span>磁力任务助手 v0.1.1</span></section>
     <section class="card"><label>MediaBridge 地址<input id="server-url" type="url" placeholder="https://media.example.com" value="${state.settings.serverUrl}" /></label>
     <label>访问令牌<input id="token" type="password" placeholder="mb_…" value="${state.settings.token}" /></label>
     <button id="save" class="secondary">保存并连接</button></section>
     <section class="card ${hasMagnet ? '' : 'empty'}"><h2>已捕获的磁力链接</h2>
       ${hasMagnet ? `<p class="title">${state.magnet?.title || '当前页面资源'}</p><code>${state.magnet?.value}</code>
       <label>目标媒体库<select id="library"><option value="">请选择</option>${state.libraries.map((library) => `<option value="${library.name}">${library.name}</option>`).join('')}</select></label>
-      <button id="submit" ${configured && state.libraries.length ? '' : 'disabled'}>发送到 MediaBridge</button>` : '<p>点击页面中的“复制磁力链接”按钮后，链接会显示在这里；插件不会自动提交。</p>'}
+      <button id="submit" ${configured && state.libraries.length ? '' : 'disabled'}>发送到 MediaBridge</button>` : '<p>点击页面中的“复制磁力链接”按钮后，链接会显示在这里；插件不会自动提交。</p><button id="read-clipboard" class="secondary">读取剪贴板中的磁力链接</button>'}
     </section><p id="notice" class="notice"></p>`
   document.querySelector('#save')?.addEventListener('click', () => void saveSettings())
   document.querySelector('#submit')?.addEventListener('click', () => void submitTask())
+  document.querySelector('#read-clipboard')?.addEventListener('click', () => void readClipboardManually())
 }
 
 async function start() {

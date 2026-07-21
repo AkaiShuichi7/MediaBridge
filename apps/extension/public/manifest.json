@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "MediaBridge",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Capture copied magnet links and submit them to MediaBridge.",
   "action": { "default_popup": "index.html", "default_title": "MediaBridge" },
   "background": { "service_worker": "service-worker.js", "type": "module" },

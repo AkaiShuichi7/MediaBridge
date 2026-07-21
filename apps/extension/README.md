@@ -23,6 +23,10 @@ and select `apps/extension/dist`.
 3. On a resource site, click its magnetic-link copy button. The popup badge
    becomes `1`; open it, choose a media library, and send the task.
 
+If a site uses an unusual copy implementation and no badge appears, open the
+popup and choose **Read magnet link from clipboard**. This reads the clipboard
+only for that explicit popup click and is the reliable manual fallback.
+
 After installing or reloading the extension, refresh any resource tab that was
 already open so the capture script can be injected.
 
