@@ -10,6 +10,13 @@
     capture(event.data.value)
   })
 
+  // Some sites render a styled copy control inside an ordinary magnet anchor.
+  // The magnet is not visible in the UI, but is still available as the href.
+  document.addEventListener('click', (event) => {
+    const link = event.target instanceof Element ? event.target.closest('a[href^="magnet:"]') : null
+    if (link) capture(link.getAttribute('href'))
+  }, true)
+
   // Some sites use an internal clipboard helper that cannot be patched from
   // the page world. Probe only after an intentional click on a copy/magnet UI.
   document.addEventListener('click', (event) => {

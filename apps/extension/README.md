@@ -1,7 +1,7 @@
 # MediaBridge browser extension
 
 The first version captures a magnet link only after the user clicks a site's
-copy action. It never submits a task automatically: open the extension popup,
+copy action or a magnet link styled as a copy control. It never submits a task automatically: open the extension popup,
 select a library, then confirm the submission.
 
 ## Install for development
