@@ -1,0 +1,45 @@
+name: Build browser extension
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/extension/**"
+      - ".github/workflows/extension-package.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/extension
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/extension/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build extension
+        run: npm run build
+
+      - name: Create extension archive
+        run: zip -r mediabridge-extension.zip dist
+
+      - name: Upload extension archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: mediabridge-extension
+          path: apps/extension/mediabridge-extension.zip
+          if-no-files-found: error

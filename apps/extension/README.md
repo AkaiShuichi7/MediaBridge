@@ -1,5 +1,35 @@
 # MediaBridge browser extension
 
-This directory is reserved for the browser extension. Keep extension-specific
-manifest, UI, and packaging files here. It should use generated clients from
-`packages/api-contracts` rather than duplicating API request types.
+The first version captures a magnet link only after the user clicks a site's
+copy action. It never submits a task automatically: open the extension popup,
+select a library, then confirm the submission.
+
+## Install for development
+
+```bash
+npm ci
+npm run build
+```
+
+Open `chrome://extensions`, enable Developer mode, choose **Load unpacked**,
+and select `apps/extension/dist`.
+
+## Configure
+
+1. In the MediaBridge Web UI, create an access token in **System settings →
+   Access tokens**.
+2. Open the extension popup and enter the public MediaBridge URL plus that
+   `mb_…` token. The browser asks for permission only for that server origin.
+3. On a resource site, click its magnetic-link copy button. The popup badge
+   becomes `1`; open it, choose a media library, and send the task.
+
+The extension does run a small content script on pages in order to observe a
+site writing a magnet link to the clipboard. It only stores values matching
+`magnet:?xt=urn:btih:…`; it does not continuously read the clipboard and does
+not submit anything without a final user click.
+
+## Packaging
+
+The `extension-package.yml` workflow builds a loadable extension directory and
+uploads a ZIP artifact when only `apps/extension` changes. It is intentionally
+independent of the main Docker image workflow.

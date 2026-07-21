@@ -17,6 +17,8 @@ apps/server/htmlcov/
 apps/web/node_modules/
 apps/web/dist/
 apps/web/*.local
+apps/extension/node_modules/
+apps/extension/dist/
 
 # Editors and operating systems
 .idea/
