@@ -28,7 +28,9 @@ script from one extension and a popup from another use separate storage.
 2. Open the extension popup and enter the public MediaBridge URL plus that
    `mb_…` token. The browser asks for permission only for that server origin.
 3. On a resource site, click its magnetic-link copy button. The popup badge
-   becomes `1`; open it, choose a media library, and send the task.
+   becomes `1`; on Chrome 127 or later the popup opens automatically. Choose a
+   media library and send the task. Older Chrome versions keep the badge as a
+   fallback and require opening the popup manually.
 
 If a site uses an unusual copy implementation and no badge appears, open the
 popup and choose **Read magnet link from clipboard**. This reads the clipboard

@@ -1,4 +1,5 @@
 const clipboardRequests = new Map()
+let lastPopupOpenedAt = 0
 
 async function ensureOffscreenDocument() {
   if (await chrome.offscreen.hasDocument()) return
@@ -19,7 +20,15 @@ async function readClipboard() {
 }
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (message?.type === 'magnet-captured') chrome.action.setBadgeText({ text: '1' })
+  if (message?.type === 'magnet-captured') {
+    chrome.action.setBadgeText({ text: '1' })
+    // Chrome 127+ lets an extension open its action popup from this user
+    // initiated capture path. Older browsers keep the badge as a fallback.
+    if (typeof chrome.action.openPopup === 'function' && Date.now() - lastPopupOpenedAt > 500) {
+      lastPopupOpenedAt = Date.now()
+      chrome.action.openPopup().catch(() => {})
+    }
+  }
   if (message?.type === 'clipboard-read-result') {
     const request = clipboardRequests.get(message.requestId)
     if (!request) return
