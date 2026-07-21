@@ -6,5 +6,6 @@
 from app.models.offline_task import OfflineTask
 from app.models.organize_record import OrganizeRecord
 from app.models.path_id_cache import PathIdCache
+from app.models.auth import ApiToken, AppSetting, User
 
-__all__ = ["OfflineTask", "OrganizeRecord", "PathIdCache"]
+__all__ = ["OfflineTask", "OrganizeRecord", "PathIdCache", "User", "ApiToken", "AppSetting"]

@@ -32,6 +32,7 @@ class AppContainer:
         self.cloud_service: P115CloudService | None = None
         self.file_organizer: FileOrganizer | None = None
         self.task_monitor: TaskMonitor | None = None
+        self.auth_service = None
 
     async def init(self, config: Config) -> None:
         """
@@ -50,6 +51,9 @@ class AppContainer:
         logger.info("配置加载完成")
 
         await init_db(config.database.url)
+        from app.services.auth import AuthService
+        self.auth_service = AuthService()
+        await self.auth_service.initialize()
         logger.info("数据库初始化完成")
 
         # 创建 115 客户端（单例）

@@ -1,4 +1,7 @@
 import { useLocation } from 'react-router-dom'
+import { LogOut } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { useAuth } from '@/auth/AuthProvider'
 
 const PAGE_TITLES: Record<string, string> = {
   '/': '仪表盘',
@@ -9,6 +12,7 @@ const PAGE_TITLES: Record<string, string> = {
 
 export function PageHeader() {
   const location = useLocation()
+  const { logout } = useAuth()
   const title = PAGE_TITLES[location.pathname] ?? 'MediaBridge'
 
   return (
@@ -19,6 +23,7 @@ export function PageHeader() {
         </div>
         <h1 className="text-base font-semibold tracking-tight text-foreground">{title}</h1>
       </div>
+      <Button className="ml-auto" variant="ghost" size="icon" onClick={() => void logout()} aria-label="退出登录"><LogOut className="size-4" /></Button>
     </header>
   )
 }

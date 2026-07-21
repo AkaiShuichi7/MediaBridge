@@ -13,7 +13,7 @@ from fastapi.responses import JSONResponse
 from loguru import logger
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from app.api import tasks, organize, config, system
+from app.api import auth, tasks, organize, config, system
 from app.core.config import load_config
 from app.core.container import AppContainer
 from app.schemas.api import ApiResponse, success_response
@@ -46,6 +46,30 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
+
+@app.middleware("http")
+async def require_authentication(request: Request, call_next):
+    """Require a browser session or Bearer token for every API endpoint."""
+    if not request.url.path.startswith("/api/") or request.url.path == "/api/auth/login":
+        return await call_next(request)
+
+    service = getattr(getattr(request.app.state, "container", None), "auth_service", None)
+    if service is None:
+        return JSONResponse(status_code=503, content={"code": 503, "message": "Authentication is initializing", "data": None})
+
+    authorization = request.headers.get("Authorization", "")
+    token_user = await service.user_from_token(authorization.removeprefix("Bearer ").strip()) if authorization.startswith("Bearer ") else None
+    session_user = None if token_user else await service.user_from_session(request.cookies.get("mediabridge_session"))
+    if token_user is not None:
+        request.state.auth_user = token_user
+    elif session_user is not None:
+        request.state.auth_user, request.state.csrf_token = session_user
+        if request.method not in {"GET", "HEAD", "OPTIONS"} and request.headers.get("X-CSRF-Token") != request.state.csrf_token:
+            return JSONResponse(status_code=403, content={"code": 403, "message": "Invalid CSRF token", "data": None})
+    else:
+        return JSONResponse(status_code=401, content={"code": 401, "message": "Authentication required", "data": None})
+    return await call_next(request)
 
 
 # 全局异常处理器
@@ -92,6 +116,7 @@ app.include_router(tasks.router, prefix="/api", tags=["tasks"])
 app.include_router(organize.router, prefix="/api", tags=["organize"])
 app.include_router(config.router, prefix="/api", tags=["config"])
 app.include_router(system.router, prefix="/api", tags=["system"])
+app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 
 
 @app.get("/")

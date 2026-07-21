@@ -25,13 +25,32 @@ infra/
 
 ```bash
 cp apps/server/config.example.yaml config.yaml
+cp .env.example .env
 mkdir -p db logs
-# Edit config.yaml and set the 115 cookies and library paths.
+# Edit config.yaml, then set a long MEDIABRIDGE_ADMIN_PASSWORD in .env.
 docker compose -f infra/docker-compose.yml up -d
 ```
 
-Open `http://<host>:8080`. API documentation is available at
-`http://<host>:8080/docs`.
+Open `http://<host>:8080` and sign in with the administrator credentials from
+`.env`. When this port is behind an HTTPS reverse proxy, keep
+`MEDIABRIDGE_COOKIE_SECURE=true`.
+
+The FastAPI documentation endpoints are not exposed through the bundled Nginx
+configuration. Do not add `/docs`, `/redoc`, or `/openapi.json` to a public
+reverse proxy unless you explicitly need them.
+
+## Authentication and future clients
+
+The Web UI authenticates with an HttpOnly session cookie. API calls from the
+future browser extension or Agent should instead use a personal access token:
+
+```http
+Authorization: Bearer mb_<token>
+```
+
+Create, list, and revoke tokens through `/api/auth/tokens`; a newly created
+token is returned only once. This is the common authentication boundary for
+all MediaBridge clients, independent of Emby users.
 
 To use a different image name:
 

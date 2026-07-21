@@ -1,7 +1,8 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, ListTodo, FileCheck2, Settings, Activity } from 'lucide-react'
+import { LayoutDashboard, ListTodo, FileCheck2, Settings, Activity, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useStatus } from '@/hooks/queries'
+import { useAuth } from '@/auth/AuthProvider'
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: '仪表盘', end: true },
@@ -12,6 +13,7 @@ const navItems = [
 
 export function Sidebar() {
   const { data: status } = useStatus()
+  const { logout } = useAuth()
   
   return (
     <aside className="hidden lg:flex w-64 flex-col border-r border-border bg-card/50 backdrop-blur-xl">
@@ -57,6 +59,9 @@ export function Sidebar() {
             </span>
           ) : null}
         </div>
+        <button className="mt-3 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground" onClick={() => void logout()}>
+          <LogOut className="size-4" />退出登录
+        </button>
       </div>
     </aside>
   )

@@ -7,6 +7,13 @@ services:
       - "8080:80"
     environment:
       CONFIG_PATH: /app/config.yaml
+      # Used only when the database has no administrator yet. Put the value in
+      # a local .env file, never in config.yaml or version control.
+      MEDIABRIDGE_ADMIN_USERNAME: ${MEDIABRIDGE_ADMIN_USERNAME:-admin}
+      MEDIABRIDGE_ADMIN_PASSWORD: ${MEDIABRIDGE_ADMIN_PASSWORD:-}
+      # Keep true for every HTTPS reverse-proxy deployment. Set false only for
+      # a trusted local HTTP-only installation.
+      MEDIABRIDGE_COOKIE_SECURE: ${MEDIABRIDGE_COOKIE_SECURE:-true}
     volumes:
       - ../config.yaml:/app/config.yaml
       - ../db:/app/db

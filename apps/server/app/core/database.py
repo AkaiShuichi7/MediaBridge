@@ -49,6 +49,7 @@ async def init_db(database_url: str | None = None):
     from app.models.offline_task import OfflineTask
     from app.models.organize_record import OrganizeRecord
     from app.models.path_id_cache import PathIdCache
+    from app.models.auth import ApiToken, AppSetting, User
 
     url = resolve_database_url(database_url)
     init_engine(url)

@@ -1,21 +1,22 @@
 # Runtime configuration and data
 config.yaml
+.env
 db/
 logs/
 
 # Python
-backend/.venv/
-backend/venv/
-backend/__pycache__/
-backend/**/*.py[cod]
-backend/.pytest_cache/
-backend/.coverage
-backend/htmlcov/
+apps/server/.venv/
+apps/server/venv/
+apps/server/__pycache__/
+apps/server/**/*.py[cod]
+apps/server/.pytest_cache/
+apps/server/.coverage
+apps/server/htmlcov/
 
 # Node.js
-frontend/node_modules/
-frontend/dist/
-frontend/*.local
+apps/web/node_modules/
+apps/web/dist/
+apps/web/*.local
 
 # Editors and operating systems
 .idea/
