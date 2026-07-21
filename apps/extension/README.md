@@ -23,8 +23,13 @@ and select `apps/extension/dist`.
 3. On a resource site, click its magnetic-link copy button. The popup badge
    becomes `1`; open it, choose a media library, and send the task.
 
+After installing or reloading the extension, refresh any resource tab that was
+already open so the capture script can be injected.
+
 The extension does run a small content script on pages in order to observe a
-site writing a magnet link to the clipboard. It only stores values matching
+site writing a magnet link to the clipboard. For sites that use an internal
+clipboard helper, it reads the clipboard once immediately after a user clicks a
+control labelled magnet/copy. It only stores values matching
 `magnet:?xt=urn:btih:…`; it does not continuously read the clipboard and does
 not submit anything without a final user click.
 

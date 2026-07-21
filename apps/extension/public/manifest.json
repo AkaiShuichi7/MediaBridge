@@ -5,7 +5,7 @@
   "description": "Capture copied magnet links and submit them to MediaBridge.",
   "action": { "default_popup": "index.html", "default_title": "MediaBridge" },
   "background": { "service_worker": "service-worker.js", "type": "module" },
-  "permissions": ["storage"],
+  "permissions": ["storage", "clipboardRead", "offscreen"],
   "optional_host_permissions": ["http://*/*", "https://*/*"],
   "content_scripts": [
     { "matches": ["<all_urls>"], "js": ["page-hook.js"], "world": "MAIN", "run_at": "document_start" },
