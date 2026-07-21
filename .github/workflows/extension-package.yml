@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   package:
@@ -35,7 +35,9 @@ jobs:
         run: npm run build
 
       - name: Create extension archive
-        run: zip -r mediabridge-extension.zip dist
+        run: |
+          cd dist
+          zip -r ../mediabridge-extension.zip .
 
       - name: Upload extension archive
         uses: actions/upload-artifact@v4
@@ -43,3 +45,15 @@ jobs:
           name: mediabridge-extension
           path: apps/extension/mediabridge-extension.zip
           if-no-files-found: error
+
+      - name: Publish latest extension release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git push origin HEAD:refs/tags/browser-extension --force
+          if gh release view browser-extension >/dev/null 2>&1; then
+            gh release upload browser-extension mediabridge-extension.zip --clobber
+            gh release edit browser-extension --title "MediaBridge Browser Extension" --prerelease --notes "Latest build from commit $GITHUB_SHA"
+          else
+            gh release create browser-extension mediabridge-extension.zip --title "MediaBridge Browser Extension" --prerelease --notes "Latest build from commit $GITHUB_SHA"
+          fi

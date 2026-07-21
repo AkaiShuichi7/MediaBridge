@@ -54,5 +54,9 @@ not submit anything without a final user click.
 ## Packaging
 
 The `extension-package.yml` workflow builds a loadable extension directory and
-uploads a ZIP artifact when only `apps/extension` changes. It is intentionally
-independent of the main Docker image workflow.
+uploads a ZIP artifact when only `apps/extension` changes. The ZIP root is the
+loadable extension itself, so extract it once and select that extracted folder
+in `chrome://extensions`. The same build also updates the rolling
+`browser-extension` prerelease on GitHub Releases, which is the recommended
+download location. This workflow is intentionally independent of the main
+Docker image workflow.
