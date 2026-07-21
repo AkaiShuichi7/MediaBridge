@@ -5,9 +5,10 @@ type Settings = { serverUrl: string; token: string }
 type CapturedMagnet = { value: string; title?: string }
 
 const app = document.querySelector<HTMLElement>('#app')!
-const state: { settings: Settings; magnet?: CapturedMagnet; libraries: Library[] } = {
+const state: { settings: Settings; magnet?: CapturedMagnet; libraries: Library[]; isSubmitting: boolean } = {
   settings: { serverUrl: '', token: '' },
   libraries: [],
+  isSubmitting: false,
 }
 
 function normalizedServerUrl(value: string) {
@@ -62,8 +63,13 @@ async function loadLibraries() {
 }
 
 async function submitTask() {
+  if (state.isSubmitting) return
   const libraryName = (document.querySelector<HTMLSelectElement>('#library')!).value
   if (!state.magnet || !libraryName) return show('请先选择媒体库。', true)
+  state.isSubmitting = true
+  render()
+  show('正在发送离线任务…')
+  let errorMessage: string | undefined
   try {
     await api('/api/tasks', { method: 'POST', body: JSON.stringify({ magnet: state.magnet.value, library_name: libraryName, name: state.magnet.title || undefined }) })
     await chrome.storage.local.remove('capturedMagnet')
@@ -73,8 +79,12 @@ async function submitTask() {
     show('离线任务已提交到 MediaBridge。')
     window.setTimeout(() => window.close(), 2000)
   } catch (error) {
-    show(error instanceof Error ? error.message : '任务提交失败。', true)
+    errorMessage = error instanceof Error ? error.message : '任务提交失败。'
+  } finally {
+    state.isSubmitting = false
+    if (state.magnet) render()
   }
+  if (errorMessage) show(errorMessage, true)
 }
 
 async function readClipboardManually() {
@@ -107,14 +117,14 @@ function render() {
   const configured = Boolean(state.settings.serverUrl && state.settings.token)
   const hasMagnet = Boolean(state.magnet)
   app.innerHTML = `
-    <section class="header"><strong>MediaBridge</strong><span>磁力任务助手 v0.1.9</span></section>
+    <section class="header"><strong>MediaBridge</strong><span>磁力任务助手 v0.1.10</span></section>
     <section class="card"><label>MediaBridge 地址<input id="server-url" type="url" placeholder="https://media.example.com" value="${state.settings.serverUrl}" /></label>
     <label>访问令牌<input id="token" type="password" placeholder="mb_…" value="${state.settings.token}" /></label>
     <button id="save" class="secondary">保存并连接</button></section>
     <section class="card ${hasMagnet ? '' : 'empty'}"><h2>已捕获的磁力链接</h2>
       ${hasMagnet ? `<p class="title">${state.magnet?.title || '当前页面资源'}</p><code>${state.magnet?.value}</code>
       <label>目标媒体库<select id="library"><option value="">请选择</option>${state.libraries.map((library) => `<option value="${library.name}">${library.name}</option>`).join('')}</select></label>
-      <div class="actions"><button id="submit" ${configured && state.libraries.length ? '' : 'disabled'}>发送到 MediaBridge</button><button id="discard" class="secondary">取消</button></div>` : '<p>点击页面中的“复制磁力链接”按钮后，链接会显示在这里；插件不会自动提交。</p><button id="read-clipboard" class="secondary">读取剪贴板中的磁力链接</button>'}
+      <div class="actions"><button id="submit" ${configured && state.libraries.length && !state.isSubmitting ? '' : 'disabled'}>${state.isSubmitting ? '<span class="spinner" aria-hidden="true"></span>正在发送…' : '发送到 MediaBridge'}</button><button id="discard" class="secondary" ${state.isSubmitting ? 'disabled' : ''}>取消</button></div>` : '<p>点击页面中的“复制磁力链接”按钮后，链接会显示在这里；插件不会自动提交。</p><button id="read-clipboard" class="secondary">读取剪贴板中的磁力链接</button>'}
     </section><p id="notice" class="notice"></p>`
   document.querySelector('#save')?.addEventListener('click', () => void saveSettings())
   document.querySelector('#submit')?.addEventListener('click', () => void submitTask())
